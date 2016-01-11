@@ -10,7 +10,8 @@ function Game() {
 
   this.stage = new PIXI.Container();
 
-  this.level = new Level(this.stage, this.width, this.height, this.tileSize);
+  this.level = new Level(this.stage, this, this.width, this.height,
+                         this.tileSize);
   this.controller = new Controller();
   this.player = new Player(this.stage, this.level, this.tileSize);
 
@@ -31,4 +32,13 @@ Game.prototype.animate = function() {
   this.renderer.render(this.stage);
 
   this.lastRender += dt;
+};
+
+/**
+ * Win the current level, moving on and increasing difficulty
+ */
+Game.prototype.win = function() {
+  this.level.map.difficulty += 5;
+  this.level.regenerate();
+  this.player.loc = this.level.getRandomEmptyLocation();
 };

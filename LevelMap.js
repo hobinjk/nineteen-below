@@ -1,6 +1,7 @@
 function LevelMap(width, height) {
   this.width = width;
   this.height = height;
+  this.difficulty = 15;
 }
 
 /**
@@ -38,7 +39,7 @@ LevelMap.prototype.generate = function() {
   var step = 0;
   var failures = 0;
 
-  while (step < 25 && failures < 1600) {
+  while (step < this.difficulty && failures < 16000) {
     var direction = Utils.randElement(Vec2.Direction.ALL);
     var oppositeDirection = Vec2.getOppositeDirection(direction);
     var stopPos = currentPos.add(oppositeDirection);

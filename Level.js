@@ -1,5 +1,6 @@
-function Level(stage, width, height, tileSize) {
+function Level(stage, game, width, height, tileSize) {
   this.stage = stage;
+  this.game = game;
   this.width = width;
   this.height = height;
   this.tileSize = tileSize;
@@ -9,11 +10,22 @@ function Level(stage, width, height, tileSize) {
 
   this.map = new LevelMap(this.tileWidth, this.tileHeight);
 
+  this.container = new PIXI.Container();
+  this.stage.addChild(this.container);
+
   this.loadTextures();
+  this.regenerate();
+}
+
+/**
+ * Regenerate the level, generating the map, creating the tiles for the map,
+ * and creating the ice block
+ */
+Level.prototype.regenerate = function() {
   this.generateMap();
   this.createTiles();
   this.createBlock();
-}
+};
 
 /**
  * Get tile location corresponding to pixel location
@@ -169,6 +181,8 @@ Level.prototype.generateMap = function() {
  * Create the tiles corresponding to the map
  */
 Level.prototype.createTiles = function() {
+  this.container.removeChildren();
+
   for (var tileX = 0; tileX < this.map.width; tileX++) {
     for (var tileY = 0; tileY < this.map.height; tileY++) {
       var x = tileX * this.tileSize;
@@ -194,7 +208,7 @@ Level.prototype.createTiles = function() {
       tile.position.y = y;
       tile.width = this.tileSize;
       tile.height = this.tileSize;
-      this.stage.addChild(tile);
+      this.container.addChild(tile);
     }
   }
 };
@@ -203,15 +217,34 @@ Level.prototype.createTiles = function() {
  * Create the ice block
  */
 Level.prototype.createBlock = function() {
+  if (this.block) {
+    this.block.remove();
+  }
   for (var x = 0; x < this.map.width; x++) {
     for (var y = 0; y < this.map.height; y++) {
       if (this.map.tileMap[x][y] !== BlockType.BLOCK) {
         continue;
       }
-      this.block = new Block(this.stage, this, new Vec2(x, y), this.tileSize);
+      this.block = new Block(this.stage, this.game, this,
+                             new Vec2(x, y), this.tileSize);
       return;
     }
   }
+};
+
+/**
+ * @return {Vec2} a random empty location
+ */
+Level.prototype.getRandomEmptyLocation = function() {
+  var possibilities = [];
+  for (var x = 0; x < this.map.width; x++) {
+    for (var y = 0; y < this.map.height; y++) {
+      if (this.map.tileMap[x][y] === BlockType.EMPTY) {
+        possibilities.push(new Vec2(x * this.tileSize, y * this.tileSize));
+      }
+    }
+  }
+  return Utils.randElement(possibilities);
 };
 
 /**

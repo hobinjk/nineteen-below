@@ -1,12 +1,15 @@
 /**
  * @constructor
  * @param {PIXI.Stage} stage
+ * @param {Game} game
  * @param {Level} level
  * @param {Vec2} tileLoc
  * @param {number} tileSize
  */
-function Block(stage, level, tileLoc, tileSize) {
+function Block(stage, game, level, tileLoc, tileSize) {
   this.stage = stage;
+  this.game = game;
+
   this.loc = new Vec2(tileLoc.x * tileSize, tileLoc.y * tileSize);
   this.tileSize = tileSize;
   this.level = level;
@@ -46,7 +49,8 @@ Block.prototype.push = function(loc) {
     }
   }
   var tileLoc = this.level.getTileLoc(this.loc);
-  this.level.map.tileMap[tileLoc.x][tileLoc.y] = BlockType.EMPTY;
+  var currentMap = this.level.map.tileMap;
+  currentMap[tileLoc.x][tileLoc.y] = BlockType.EMPTY;
 
   this.moving = true;
 };
@@ -68,6 +72,10 @@ Block.prototype.update = function(dt) {
   if (BlockType.isCollision(collidedBlock)) {
     this.moving = false;
     var tileLoc = this.level.getNearTileLoc(this.loc, vel);
+    if (this.level.map.tileMap[tileLoc.x][tileLoc.y] === BlockType.GOAL) {
+      this.game.win();
+      return;
+    }
     this.level.map.tileMap[tileLoc.x][tileLoc.y] = BlockType.BLOCK;
     this.loc.x = tileLoc.x * this.tileSize;
     this.loc.y = tileLoc.y * this.tileSize;
@@ -77,6 +85,13 @@ Block.prototype.update = function(dt) {
 
   this.sprite.position.x = this.loc.x;
   this.sprite.position.y = this.loc.y;
+};
+
+/**
+ * Remove the block's sprite from the stage
+ */
+Block.prototype.remove = function() {
+  this.stage.removeChild(this.sprite);
 };
 
 var BlockType = {
