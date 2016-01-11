@@ -1,7 +1,7 @@
 function Player(stage, level, size) {
   this.level = level;
   this.loc = level.getRandomEmptyLocation();
-  this.texture = PIXI.Texture.fromImage('assets/goal.png');
+  this.texture = PIXI.Texture.fromImage('assets/player.png');
   this.sprite = new PIXI.Sprite(this.texture);
   this.sprite.width = size;
   this.sprite.height = size;
