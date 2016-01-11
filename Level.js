@@ -124,6 +124,7 @@ Level.prototype.getMovementWithCollision = function(loc, dir) {
   }
 
   var newLoc = loc.add(dir);
+  var newDir = new Vec2(dir.x, dir.y);
 
   var tileLoc = this.getTileLoc(newLoc);
   var overlapStrictness = this.tileSize * 0.01;
@@ -131,12 +132,12 @@ Level.prototype.getMovementWithCollision = function(loc, dir) {
   var overlapX = newLoc.x - tileLoc.x * this.tileSize > overlapStrictness;
   var overlapY = newLoc.y - tileLoc.y * this.tileSize > overlapStrictness;
 
-  var xCollide = BlockType.isCollision(this.getCollision(loc, dir));
+  var xCollide = BlockType.isCollision(this.getCollision(loc, newDir));
   var yCollide = xCollide;
 
   if (overlapY) {
     var xCollideBlock = this.getCollision(
-      loc.add(new Vec2(0, this.tileSize)), dir);
+      loc.add(new Vec2(0, this.tileSize)), newDir);
     xCollide = xCollide || BlockType.isCollision(xCollideBlock);
     // BlockType.isCollision(
     //   this.map.tileMap[tileLoc.x + bumpX][tileLoc.y + 1]);
@@ -144,21 +145,21 @@ Level.prototype.getMovementWithCollision = function(loc, dir) {
 
   if (overlapX) {
     var yCollideBlock = this.getCollision(
-      loc.add(new Vec2(this.tileSize, 0)), dir);
+      loc.add(new Vec2(this.tileSize, 0)), newDir);
     yCollide = yCollide || BlockType.isCollision(yCollideBlock);
     //  BlockType.isCollision(
     //    this.map.tileMap[tileLoc.x + 1][tileLoc.y + bumpY]);
   }
 
   if (xCollide) {
-    dir.x = 0;
+    newDir.x = 0;
   }
 
   if (yCollide) {
-    dir.y = 0;
+    newDir.y = 0;
   }
 
-  return loc.add(dir);
+  return loc.add(newDir);
 };
 
 /**
