@@ -19,12 +19,12 @@ Player.prototype.move = function(dir) {
 
   var performCorrection = Math.abs(dir.x) !== Math.abs(dir.y);
 
+  this.loc = this.level.getMovementWithCollision(this.loc, dir);
+
   var collidedBlock = this.level.getCollision(this.loc, dir);
   if (collidedBlock === BlockType.BLOCK) {
     this.level.block.push(this.loc);
   }
-
-  this.loc = this.level.getMovementWithCollision(this.loc, dir);
 
   var correction = 0.5;
   function correct(center, value) {
