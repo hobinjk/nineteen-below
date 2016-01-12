@@ -152,11 +152,11 @@ Level.prototype.getMovementWithCollision = function(loc, dir) {
   }
 
   if (xCollide) {
-    newDir.x = 0;
+    newDir.x = Math.round(loc.x / this.tileSize) * this.tileSize - loc.x;
   }
 
   if (yCollide) {
-    newDir.y = 0;
+    newDir.y = Math.round(loc.y / this.tileSize) * this.tileSize - loc.y;
   }
 
   return loc.add(newDir);
