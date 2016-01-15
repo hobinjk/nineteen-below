@@ -14,11 +14,6 @@ function Player(stage, level, size) {
  * @param {Vec2} dir
  */
 Player.prototype.move = function(dir) {
-  // Three cases: stationary, diagonal, linear.
-  // Linear should attempt to conform to tile boundaries
-
-  var performCorrection = Math.abs(dir.x) !== Math.abs(dir.y);
-
   this.loc = this.level.getMovementWithCollision(this.loc, dir);
 
   var collidedBlock = this.level.getCollision(this.loc, dir);
@@ -26,17 +21,15 @@ Player.prototype.move = function(dir) {
     this.level.block.push(this.loc);
   }
 
+  var performCorrection = BlockType.isCollision(collidedBlock);
+
   var correction = 0.5;
   function correct(center, value) {
     var diff = center - value;
     if (Math.abs(diff) < correction) {
       return center;
     } else {
-      if (center > value) {
-        return value + correction;
-      } else if (center < value) {
-        return value - correction;
-      }
+      return value + Utils.sign(diff) * correction;
     }
   }
 

@@ -28,39 +28,27 @@ Level.prototype.regenerate = function() {
 };
 
 /**
- * Get tile location corresponding to pixel location
+ * Get tile location corresponding to tile coordinates (indices)
  *
  * @param {Vec2} loc
  * @return {Vec2}
  */
 Level.prototype.getTileLoc = function(loc) {
   return new Vec2(
-    Math.floor(loc.x / this.tileSize),
-    Math.floor(loc.y / this.tileSize));
+    loc.x * this.tileSize,
+    loc.y * this.tileSize);
 };
 
 /**
- * Get tile location corresponding to pixel location with bias based on dir
+ * Get tile location corresponding to pixel location
  *
  * @param {Vec2} loc
- * @param {Vec2} dir
  * @return {Vec2}
  */
-Level.prototype.getNearTileLoc = function(loc, dir) {
-  var x = loc.x / this.tileSize;
-  var y = loc.y / this.tileSize;
-
-  if (dir.x < 0) {
-    x = Math.floor(x);
-  } else {
-    x = Math.ceil(x);
-  }
-  if (dir.y < 0) {
-    y = Math.floor(y);
-  } else {
-    y = Math.ceil(y);
-  }
-  return new Vec2(x, y);
+Level.prototype.getTileCoords = function(loc) {
+  return new Vec2(
+    Math.round(loc.x / this.tileSize),
+    Math.round(loc.y / this.tileSize));
 };
 
 /**
@@ -70,9 +58,7 @@ Level.prototype.getNearTileLoc = function(loc, dir) {
  * @return {Object}
  */
 Level.prototype.getCenter = function(loc) {
-  return new Vec2(
-    Math.round(loc.x / this.tileSize) * this.tileSize,
-    Math.round(loc.y / this.tileSize) * this.tileSize);
+  return this.getTileLoc(this.getTileCoords(loc));
 };
 
 /**
@@ -88,26 +74,46 @@ Level.prototype.getCollision = function(loc, dir) {
   }
 
   var newLoc = loc.add(dir);
-  var tileLoc = this.getTileLoc(newLoc);
+  var tileCoords = this.getTileCoords(newLoc);
+  var tileLoc = this.getTileLoc(tileCoords);
 
-  // If going to the right look to the right by bumping the considered tile to
-  // the right
-  var bumpX = 0;
-  if (dir.x > 0) {
-    bumpX = 1;
+  var xCollideBlock = this.map.tileMap[tileCoords.x][tileCoords.y];
+  if (newLoc.y < tileLoc.y) {
+    // If we overlap in the negative y direction throw the block in that
+    // direction into the y collide calculation
+    xCollideBlock = BlockType.orCollision(
+      xCollideBlock,
+      this.map.tileMap[tileCoords.x][tileCoords.y - 1]);
+  } else if (newLoc.y > tileLoc.y) {
+    xCollideBlock = BlockType.orCollision(
+      xCollideBlock,
+      this.map.tileMap[tileCoords.x][tileCoords.y + 1]);
   }
 
-  var bumpY = 0;
-  if (dir.y > 0) {
-    bumpY = 1;
+  var yCollideBlock = this.map.tileMap[tileCoords.x][tileCoords.y];
+
+  if (newLoc.x < tileLoc.x) {
+    // If we overlap in the negative x direction throw the block in that
+    // direction into the y collide calculation
+    yCollideBlock = BlockType.orCollision(
+      yCollideBlock,
+      this.map.tileMap[tileCoords.x - 1][tileCoords.y]);
+  } else if (newLoc.x > tileLoc.x) {
+    yCollideBlock = BlockType.orCollision(
+      yCollideBlock,
+      this.map.tileMap[tileCoords.x + 1][tileCoords.y]);
   }
 
-  var xCollideBlock = this.map.tileMap[tileLoc.x + bumpX][tileLoc.y];
   if (BlockType.isCollision(xCollideBlock)) {
+    // If both collide and y is the movement direction, prefer returning y
+    if (BlockType.isCollision(yCollideBlock)) {
+      if (Math.abs(dir.x) < Math.abs(dir.y)) {
+        return yCollideBlock;
+      }
+    }
     return xCollideBlock;
   }
-
-  return this.map.tileMap[tileLoc.x][tileLoc.y + bumpY];
+  return yCollideBlock;
 };
 
 /**
@@ -123,33 +129,12 @@ Level.prototype.getMovementWithCollision = function(loc, dir) {
     return loc;
   }
 
-  var newLoc = loc.add(dir);
   var newDir = new Vec2(dir.x, dir.y);
 
-  var tileLoc = this.getTileLoc(newLoc);
-  var overlapStrictness = this.tileSize * 0.01;
-
-  var overlapX = newLoc.x - tileLoc.x * this.tileSize > overlapStrictness;
-  var overlapY = newLoc.y - tileLoc.y * this.tileSize > overlapStrictness;
-
-  var xCollide = BlockType.isCollision(this.getCollision(loc, newDir));
-  var yCollide = xCollide;
-
-  if (overlapY) {
-    var xCollideBlock = this.getCollision(
-      loc.add(new Vec2(0, this.tileSize)), newDir);
-    xCollide = xCollide || BlockType.isCollision(xCollideBlock);
-    // BlockType.isCollision(
-    //   this.map.tileMap[tileLoc.x + bumpX][tileLoc.y + 1]);
-  }
-
-  if (overlapX) {
-    var yCollideBlock = this.getCollision(
-      loc.add(new Vec2(this.tileSize, 0)), newDir);
-    yCollide = yCollide || BlockType.isCollision(yCollideBlock);
-    //  BlockType.isCollision(
-    //    this.map.tileMap[tileLoc.x + 1][tileLoc.y + bumpY]);
-  }
+  var xCollide = BlockType.isCollision(
+    this.getCollision(loc, new Vec2(dir.x, 0)));
+  var yCollide = BlockType.isCollision(
+    this.getCollision(loc, new Vec2(0, dir.y)));
 
   if (xCollide) {
     newDir.x = Math.round(loc.x / this.tileSize) * this.tileSize - loc.x;

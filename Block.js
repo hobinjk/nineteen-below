@@ -3,23 +3,22 @@
  * @param {PIXI.Stage} stage
  * @param {Game} game
  * @param {Level} level
- * @param {Vec2} tileLoc
+ * @param {Vec2} tileCoords
  * @param {number} tileSize
  */
-function Block(stage, game, level, tileLoc, tileSize) {
+function Block(stage, game, level, tileCoords, tileSize) {
   this.stage = stage;
   this.game = game;
-
-  this.loc = new Vec2(tileLoc.x * tileSize, tileLoc.y * tileSize);
-  this.tileSize = tileSize;
   this.level = level;
+
+  this.loc = this.level.getTileLoc(tileCoords);
 
   this.texture = PIXI.Texture.fromImage('assets/block.png');
   this.sprite = new PIXI.Sprite(this.texture);
   this.sprite.position.x = this.loc.x;
   this.sprite.position.y = this.loc.y;
-  this.sprite.width = this.tileSize;
-  this.sprite.height = this.tileSize;
+  this.sprite.width = tileSize;
+  this.sprite.height = tileSize;
   this.stage.addChild(this.sprite);
 
   this.vel = new Vec2(0, 0);
@@ -48,9 +47,8 @@ Block.prototype.push = function(loc) {
       this.vel.y = -this.speed;
     }
   }
-  var tileLoc = this.level.getTileLoc(this.loc);
-  var currentMap = this.level.map.tileMap;
-  currentMap[tileLoc.x][tileLoc.y] = BlockType.EMPTY;
+  var tileCoords = this.level.getTileCoords(this.loc);
+  this.level.map.tileMap[tileCoords.x][tileCoords.y] = BlockType.EMPTY;
 
   this.moving = true;
 };
@@ -71,14 +69,13 @@ Block.prototype.update = function(dt) {
 
   if (BlockType.isCollision(collidedBlock)) {
     this.moving = false;
-    var tileLoc = this.level.getNearTileLoc(this.loc, vel);
-    if (this.level.map.tileMap[tileLoc.x][tileLoc.y] === BlockType.GOAL) {
+    var tileCoords = this.level.getTileCoords(this.loc);
+    if (this.level.map.tileMap[tileCoords.x][tileCoords.y] === BlockType.GOAL) {
       this.game.win();
       return;
     }
-    this.level.map.tileMap[tileLoc.x][tileLoc.y] = BlockType.BLOCK;
-    this.loc.x = tileLoc.x * this.tileSize;
-    this.loc.y = tileLoc.y * this.tileSize;
+    this.level.map.tileMap[tileCoords.x][tileCoords.y] = BlockType.BLOCK;
+    this.loc = this.level.getTileLoc(tileCoords);
   } else {
     this.loc = this.loc.add(vel);
   }
@@ -108,5 +105,28 @@ var BlockType = {
    */
   isCollision: function(block) {
     return block !== BlockType.EMPTY && block !== BlockType.GOAL;
+  },
+
+  /**
+   * Union the two blocks, effectively blockA || blockB if they were
+   * booleans
+   *
+   * @param {String} blockA
+   * @param {String} blockB
+   * @return {String}
+   */
+  orCollision: function(blockA, blockB) {
+    if (typeof(blockA) === 'undefined') {
+      throw new Error('blockA undefined');
+    }
+
+    if (typeof(blockB) === 'undefined') {
+      throw new Error('blockB undefined');
+    }
+
+    if (BlockType.isCollision(blockA)) {
+      return blockA;
+    }
+    return blockB;
   }
 };
