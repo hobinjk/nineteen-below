@@ -47,6 +47,18 @@ Level.prototype.getTileLoc = function(loc) {
  */
 Level.prototype.getTileCoords = function(loc) {
   return new Vec2(
+    Math.floor(loc.x / this.tileSize),
+    Math.floor(loc.y / this.tileSize));
+};
+
+/**
+ * Get tile location corresponding to pixel location using Math.round
+ *
+ * @param {Vec2} loc
+ * @return {Vec2}
+ */
+Level.prototype.getTileCoordsRounded = function(loc) {
+  return new Vec2(
     Math.round(loc.x / this.tileSize),
     Math.round(loc.y / this.tileSize));
 };
@@ -75,6 +87,12 @@ Level.prototype.getCollision = function(loc, dir) {
 
   var newLoc = loc.add(dir);
   var tileCoords = this.getTileCoords(newLoc);
+  if (dir.x > 0) {
+    tileCoords.x += 1;
+  }
+  if (dir.y > 0) {
+    tileCoords.y += 1;
+  }
   var tileLoc = this.getTileLoc(tileCoords);
 
   var xCollideBlock = this.map.tileMap[tileCoords.x][tileCoords.y];
@@ -135,13 +153,22 @@ Level.prototype.getMovementWithCollision = function(loc, dir) {
     this.getCollision(loc, new Vec2(dir.x, 0)));
   var yCollide = BlockType.isCollision(
     this.getCollision(loc, new Vec2(0, dir.y)));
+  var xyCollide = BlockType.isCollision(
+    this.getCollision(loc, dir));
+
+  var collideDirX = Math.round(loc.x / this.tileSize) * this.tileSize - loc.x;
+  var collideDirY = Math.round(loc.y / this.tileSize) * this.tileSize - loc.y;
+  if (xyCollide && !xCollide && !yCollide) {
+    newDir.x = collideDirX;
+    newDir.y = collideDirY;
+  }
 
   if (xCollide) {
-    newDir.x = Math.round(loc.x / this.tileSize) * this.tileSize - loc.x;
+    newDir.x = collideDirX;
   }
 
   if (yCollide) {
-    newDir.y = Math.round(loc.y / this.tileSize) * this.tileSize - loc.y;
+    newDir.y = collideDirY;
   }
 
   return loc.add(newDir);

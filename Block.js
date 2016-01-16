@@ -69,7 +69,7 @@ Block.prototype.update = function(dt) {
 
   if (BlockType.isCollision(collidedBlock)) {
     this.moving = false;
-    var tileCoords = this.level.getTileCoords(this.loc);
+    var tileCoords = this.level.getTileCoordsRounded(this.loc);
     if (this.level.map.tileMap[tileCoords.x][tileCoords.y] === BlockType.GOAL) {
       this.game.win();
       return;
