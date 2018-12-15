@@ -15,19 +15,23 @@ function Controller() {
 Controller.prototype.onKeyDown = function(event) {
   switch (event.key) {
   case 'w':
-  case 'Up':
+  case 'ArrowUp':
+  case 'Up': // IE/Edge specific value
     this.up = true;
     break;
   case 's':
-  case 'Down':
+  case 'ArrowDown':
+  case 'Down': // IE/Edge specific value
     this.down = true;
     break;
   case 'a':
-  case 'Left':
+  case 'ArrowLeft':
+  case 'Left': // IE/Edge specific value
     this.left = true;
     break;
   case 'd':
-  case 'Right':
+  case 'ArrowRight':
+  case 'Right': // IE/Edge specific value
     this.right = true;
     break;
   }
@@ -41,19 +45,23 @@ Controller.prototype.onKeyDown = function(event) {
 Controller.prototype.onKeyUp = function(event) {
   switch (event.key) {
   case 'w':
-  case 'Up':
+  case 'ArrowUp':
+  case 'Up': // IE/Edge specific value
     this.up = false;
     break;
   case 's':
-  case 'Down':
+  case 'ArrowDown':
+  case 'Down': // IE/Edge specific value:
     this.down = false;
     break;
   case 'a':
-  case 'Left':
+  case 'ArrowLeft':
+  case 'Left': // IE/Edge specific value
     this.left = false;
     break;
   case 'd':
-  case 'Right':
+  case 'ArrowRight':
+  case 'Right': // IE/Edge specific value
     this.right = false;
     break;
   }
