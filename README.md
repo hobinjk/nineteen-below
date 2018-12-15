@@ -2,6 +2,8 @@
 
 This is a 2d puzzle game you can play in a web browser.
 
+![](docs/preview.gif)
+
 ## Gameplay
 The game consists of an infinite amount of rounds. Each round the game field will look slightly different.
 
