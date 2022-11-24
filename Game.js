@@ -1,7 +1,7 @@
 function Game() {
-  this.width = 512;
-  this.height = 448;
   this.tileSize = 16;
+  this.width = this.tileSize * 16;
+  this.height = this.tileSize * 12;
 
   this.renderer = new PIXI.autoDetectRenderer(this.width, this.height);
 
